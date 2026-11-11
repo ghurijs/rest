@@ -122,11 +122,7 @@ export function ViewSetMixin<TBase extends APIViewConstructor>(Base: TBase) {
 export class ViewSet extends ViewSetMixin(APIView) {}
 
 /** Viewset with GenericAPIView helpers (`getQueryset`, `getObject`, `getSerializer`, pagination, filters). */
-export class GenericViewSet<M = any> extends ViewSetMixin(GenericAPIView) {
-  declare queryset?: any
-  /** @internal typing aid */
-  declare __model?: M
-}
+export class GenericViewSet extends ViewSetMixin(GenericAPIView) {}
 
 /** `list` + `retrieve`. */
 export class ReadOnlyModelViewSet<M = any> extends RetrieveModelMixin(ListModelMixin(GenericViewSet)) {

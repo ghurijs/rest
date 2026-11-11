@@ -1,7 +1,12 @@
 import { include, path, type UrlPatterns, UrlResolver } from '@ghuri/core'
 import { SCHEMA_EXTENSION, type SchemaExtension } from '../decorators'
 import type { JSONSchema, JSONSchemaOptions } from '../fields'
-import { AllowAny } from '../permissions'
+import {
+  AllowAny,
+  IsAuthenticatedOrReadOnly,
+  ModelPermissionsOrAnonReadOnly,
+  SAFE_METHODS,
+} from '../permissions'
 import { BaseSerializer, Serializer } from '../serializers'
 import { apiSettings } from '../settings'
 import { capfirst, isModelClass, stripSuffix } from '../utils'
@@ -194,6 +199,14 @@ export class SchemaGenerator {
     return stripSuffix(ctor.name, 'Serializer') || ctor.name
   }
 
+  /** DRF's `COERCE_PATH_PK`: `{pk}` → `{id}` (the model's primary key name). */
+  coercePath(p: string, schema: AutoSchema): string {
+    if (!p.includes('{pk}')) return p
+    const model = schema.getModel()
+    const name = model?._meta?.pk?.name
+    return name ? p.replace('{pk}', `{${name}}`) : p
+  }
+
   uniqueOperationId(id: string): string {
     let out = id
     let n = 2
@@ -218,19 +231,22 @@ export class SchemaGenerator {
   }
 
   getSchema(): OpenAPIDocument {
-    const endpoints = getEndpoints(this.patterns)
-    this.tagPrefix = this.computeTagPrefix(endpoints.map((e) => e.path))
-    const paths: Record<string, Record<string, unknown>> = {}
-    for (const endpoint of endpoints) {
+    const prepared: Array<{ path: string; method: string; schema: AutoSchema }> = []
+    for (const endpoint of getEndpoints(this.patterns)) {
       const view = viewForEndpoint(endpoint)
       if (view.schema === null) continue
       const SchemaCls = view.schema ? null : defaultSchemaClass()
       const schema: AutoSchema = view.schema ?? new SchemaCls!()
       schema.view = view
-      const operation = schema.getOperation(endpoint.path, endpoint.method, this)
+      prepared.push({ path: this.coercePath(endpoint.path, schema), method: endpoint.method, schema })
+    }
+    this.tagPrefix = this.computeTagPrefix(prepared.map((e) => e.path))
+    const paths: Record<string, Record<string, unknown>> = {}
+    for (const { path: p, method, schema } of prepared) {
+      const operation = schema.getOperation(p, method, this)
       if (!operation) continue
-      paths[endpoint.path] ??= {}
-      paths[endpoint.path][endpoint.method.toLowerCase()] = operation
+      paths[p] ??= {}
+      paths[p][method.toLowerCase()] = operation
     }
     const info = {
       title: this.opts.title ?? this.opts.info?.title ?? 'API',
@@ -327,7 +343,7 @@ export class AutoSchema {
     op.tags = ext.tags ?? this.getTags(path, method, generator)
     const body = this.getRequestBody(path, method, generator, ext)
     if (body) op.requestBody = body
-    const security = this.getSecurity(generator)
+    const security = this.getSecurity(generator, method)
     if (security) op.security = security
     op.responses = this.getResponses(path, method, generator, ext)
     if (ext.deprecated) op.deprecated = true
@@ -401,7 +417,8 @@ export class AutoSchema {
       const name = m[1]
       let schema: Record<string, unknown> = { type: 'string' }
       let description = ''
-      const lookupKwarg = view.lookupUrlKwarg ?? view.lookupField
+      let lookupKwarg = view.lookupUrlKwarg ?? view.lookupField
+      if (lookupKwarg === 'pk' && model) lookupKwarg = model._meta.pk.name
       if (model && name === lookupKwarg) {
         const lookupField = view.lookupField ?? 'pk'
         const f = lookupField === 'pk' ? model._meta.pk : model._meta.getForwardField(lookupField)
@@ -519,7 +536,7 @@ export class AutoSchema {
     return { content, required: m !== 'PATCH' }
   }
 
-  getSecurity(generator: SchemaGenerator): Array<Record<string, string[]>> | null {
+  getSecurity(generator: SchemaGenerator, method = 'GET'): Array<Record<string, string[]>> | null {
     let classes: any[] = []
     try {
       classes = this.view.getAuthenticators().map((a: any) => a.constructor)
@@ -534,14 +551,20 @@ export class AutoSchema {
       out.push({ [scheme.name]: [] })
     }
     if (!out.length) return null
-    if (this.allowsAnonymous()) out.push({})
+    if (this.allowsAnonymous(method)) out.push({})
     return out
   }
 
-  allowsAnonymous(): boolean {
+  /** Can an anonymous client call this operation (decides `{}` in `security` and 401/403 responses)? */
+  allowsAnonymous(method = 'GET'): boolean {
+    const safe = SAFE_METHODS.includes(method.toUpperCase())
     try {
       const perms = this.view.getPermissions()
-      return perms.every((p: any) => p instanceof AllowAny)
+      return perms.every(
+        (p: any) =>
+          p instanceof AllowAny ||
+          (safe && (p instanceof IsAuthenticatedOrReadOnly || p instanceof ModelPermissionsOrAnonReadOnly)),
+      )
     } catch {
       return true
     }
@@ -557,7 +580,9 @@ export class AutoSchema {
     const responses: Record<string, unknown> = {}
     const content = (schema: JSONSchema) =>
       Object.fromEntries(this.mediaTypes('response').map((mt) => [mt, { schema }]))
-    const success = m === 'POST' ? '201' : m === 'DELETE' ? '204' : '200'
+    // POST is 201 for `create` (and plain API views, like DRF); extra POST actions answer 200.
+    const created = m === 'POST' && (this.view.action === undefined || this.view.action === 'create')
+    const success = created ? '201' : m === 'DELETE' ? '204' : '200'
     const ref = (name: string) => {
       generator.schemas[name] ??= ERROR_SCHEMAS[name]
       generator.componentOwners.set(name, name)
@@ -615,7 +640,7 @@ export class AutoSchema {
     if (['POST', 'PUT', 'PATCH'].includes(m) || this.getFilterParameters(path, method).length) {
       responses['400'] = { description: 'Invalid input', content: content(ref('ValidationError')) }
     }
-    if (!this.allowsAnonymous()) {
+    if (!this.allowsAnonymous(m)) {
       responses['401'] = { description: 'Not authenticated', content: content(ref('ErrorDetail')) }
       responses['403'] = { description: 'Permission denied', content: content(ref('ErrorDetail')) }
     }

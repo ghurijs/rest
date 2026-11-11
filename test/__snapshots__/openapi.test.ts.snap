@@ -1,0 +1,980 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OpenAPI 3.1 generation > matches the snapshot 1`] = `
+{
+  "components": {
+    "schemas": {
+      "ErrorDetail": {
+        "properties": {
+          "detail": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "detail",
+        ],
+        "type": "object",
+      },
+      "Member": {
+        "properties": {
+          "id": {
+            "readOnly": true,
+            "title": "Id",
+            "type": "integer",
+          },
+          "username": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string",
+          },
+        },
+        "required": [
+          "id",
+          "username",
+        ],
+        "type": "object",
+      },
+      "PatchedPostRequest": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "integer",
+          },
+          "rating": {
+            "format": "decimal",
+            "pattern": "^-?\\d{0,2}(?:\\.\\d{0,2})?$",
+            "title": "Rating",
+            "type": [
+              "string",
+              "null",
+            ],
+          },
+          "slug": {
+            "maxLength": 50,
+            "minLength": 1,
+            "pattern": "^[-a-zA-Z0-9_]+$",
+            "title": "Slug",
+            "type": "string",
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "live",
+            ],
+            "title": "Status",
+            "type": "string",
+            "x-enum-descriptions": [
+              "Draft",
+              "Live",
+            ],
+          },
+          "tags": {
+            "items": {
+              "type": "integer",
+            },
+            "title": "Tags",
+            "type": "array",
+          },
+          "title": {
+            "description": "Headline",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "Post": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "integer",
+          },
+          "authorDetail": {
+            "$ref": "#/components/schemas/Member",
+            "readOnly": true,
+            "title": "Author detail",
+          },
+          "createdAt": {
+            "format": "date-time",
+            "readOnly": true,
+            "title": "Created at",
+            "type": "string",
+          },
+          "id": {
+            "readOnly": true,
+            "title": "Id",
+            "type": "integer",
+          },
+          "rating": {
+            "format": "decimal",
+            "pattern": "^-?\\d{0,2}(?:\\.\\d{0,2})?$",
+            "title": "Rating",
+            "type": [
+              "string",
+              "null",
+            ],
+          },
+          "slug": {
+            "maxLength": 50,
+            "minLength": 1,
+            "pattern": "^[-a-zA-Z0-9_]+$",
+            "title": "Slug",
+            "type": "string",
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "live",
+            ],
+            "title": "Status",
+            "type": "string",
+            "x-enum-descriptions": [
+              "Draft",
+              "Live",
+            ],
+          },
+          "tags": {
+            "items": {
+              "type": "integer",
+            },
+            "title": "Tags",
+            "type": "array",
+          },
+          "title": {
+            "description": "Headline",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string",
+          },
+        },
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "author",
+          "createdAt",
+          "authorDetail",
+        ],
+        "type": "object",
+      },
+      "PostRequest": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "integer",
+          },
+          "rating": {
+            "format": "decimal",
+            "pattern": "^-?\\d{0,2}(?:\\.\\d{0,2})?$",
+            "title": "Rating",
+            "type": [
+              "string",
+              "null",
+            ],
+          },
+          "slug": {
+            "maxLength": 50,
+            "minLength": 1,
+            "pattern": "^[-a-zA-Z0-9_]+$",
+            "title": "Slug",
+            "type": "string",
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "live",
+            ],
+            "title": "Status",
+            "type": "string",
+            "x-enum-descriptions": [
+              "Draft",
+              "Live",
+            ],
+          },
+          "tags": {
+            "items": {
+              "type": "integer",
+            },
+            "title": "Tags",
+            "type": "array",
+          },
+          "title": {
+            "description": "Headline",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string",
+          },
+        },
+        "required": [
+          "title",
+          "slug",
+          "author",
+        ],
+        "type": "object",
+      },
+      "PublishResult": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer",
+          },
+          "status": {
+            "minLength": 1,
+            "title": "Status",
+            "type": "string",
+          },
+        },
+        "required": [
+          "status",
+          "id",
+        ],
+        "type": "object",
+      },
+      "Tag": {
+        "properties": {
+          "id": {
+            "readOnly": true,
+            "title": "Id",
+            "type": "integer",
+          },
+          "name": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string",
+          },
+        },
+        "required": [
+          "id",
+          "name",
+        ],
+        "type": "object",
+      },
+      "Tag2": {
+        "properties": {
+          "id": {
+            "readOnly": true,
+            "title": "Id",
+            "type": "integer",
+          },
+          "name": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string",
+          },
+        },
+        "required": [
+          "id",
+          "name",
+        ],
+        "type": "object",
+      },
+      "ValidationError": {
+        "additionalProperties": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "description": "Field name → list of messages; \`nonFieldErrors\` for object-level errors.",
+        "type": "object",
+      },
+    },
+    "securitySchemes": {
+      "tokenAuth": {
+        "scheme": "bearer",
+        "type": "http",
+      },
+    },
+  },
+  "info": {
+    "description": "Posts and tags.",
+    "title": "Blog API",
+    "version": "2.0.0",
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/hello/": {
+      "get": {
+        "operationId": "retrieveSayHello",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {},
+              },
+            },
+            "description": "",
+          },
+        },
+        "tags": [
+          "hello",
+        ],
+      },
+    },
+    "/api/ping/": {
+      "get": {
+        "description": "Health check.",
+        "operationId": "retrievePing",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {},
+              },
+            },
+            "description": "",
+          },
+        },
+        "tags": [
+          "ping",
+        ],
+      },
+    },
+    "/api/posts/": {
+      "get": {
+        "operationId": "listPosts",
+        "parameters": [
+          {
+            "description": "A page number within the paginated result set.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+            },
+          },
+          {
+            "description": "A search term.",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "type": "string",
+            },
+          },
+          {
+            "description": "Which field to use when ordering the results.",
+            "in": "query",
+            "name": "ordering",
+            "required": false,
+            "schema": {
+              "type": "string",
+            },
+          },
+          {
+            "in": "query",
+            "name": "published",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+            },
+          },
+          {
+            "in": "query",
+            "name": "views__gte",
+            "required": false,
+            "schema": {
+              "type": "integer",
+            },
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "views__in",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer",
+              },
+              "type": "array",
+            },
+            "style": "form",
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "count": {
+                      "examples": [
+                        123,
+                      ],
+                      "type": "integer",
+                    },
+                    "next": {
+                      "examples": [
+                        "http://api.example.org/accounts/?page=4",
+                      ],
+                      "format": "uri",
+                      "type": [
+                        "string",
+                        "null",
+                      ],
+                    },
+                    "previous": {
+                      "examples": [
+                        "http://api.example.org/accounts/?page=2",
+                      ],
+                      "format": "uri",
+                      "type": [
+                        "string",
+                        "null",
+                      ],
+                    },
+                    "results": {
+                      "items": {
+                        "$ref": "#/components/schemas/Post",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "count",
+                    "results",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError",
+                },
+              },
+            },
+            "description": "Invalid input",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+          {},
+        ],
+        "tags": [
+          "posts",
+        ],
+      },
+      "post": {
+        "operationId": "createPost",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRequest",
+              },
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRequest",
+              },
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRequest",
+              },
+            },
+          },
+          "required": true,
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post",
+                },
+              },
+            },
+            "description": "",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError",
+                },
+              },
+            },
+            "description": "Invalid input",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not authenticated",
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Permission denied",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+        ],
+        "tags": [
+          "posts",
+        ],
+      },
+    },
+    "/api/posts/{id}/": {
+      "delete": {
+        "operationId": "destroyPost",
+        "parameters": [
+          {
+            "description": "A unique integer value identifying this post.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+            },
+          },
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not authenticated",
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Permission denied",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not found",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+        ],
+        "tags": [
+          "posts",
+        ],
+      },
+      "get": {
+        "operationId": "retrievePost",
+        "parameters": [
+          {
+            "description": "A unique integer value identifying this post.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post",
+                },
+              },
+            },
+            "description": "",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not found",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+          {},
+        ],
+        "tags": [
+          "posts",
+        ],
+      },
+      "patch": {
+        "operationId": "partialUpdatePost",
+        "parameters": [
+          {
+            "description": "A unique integer value identifying this post.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+            },
+          },
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPostRequest",
+              },
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPostRequest",
+              },
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPostRequest",
+              },
+            },
+          },
+          "required": false,
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post",
+                },
+              },
+            },
+            "description": "",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError",
+                },
+              },
+            },
+            "description": "Invalid input",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not authenticated",
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Permission denied",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not found",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+        ],
+        "tags": [
+          "posts",
+        ],
+      },
+      "put": {
+        "operationId": "updatePost",
+        "parameters": [
+          {
+            "description": "A unique integer value identifying this post.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+            },
+          },
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRequest",
+              },
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRequest",
+              },
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRequest",
+              },
+            },
+          },
+          "required": true,
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post",
+                },
+              },
+            },
+            "description": "",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError",
+                },
+              },
+            },
+            "description": "Invalid input",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not authenticated",
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Permission denied",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not found",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+        ],
+        "tags": [
+          "posts",
+        ],
+      },
+    },
+    "/api/posts/{id}/publish/": {
+      "post": {
+        "operationId": "publishPost",
+        "parameters": [
+          {
+            "description": "A unique integer value identifying this post.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishResult",
+                },
+              },
+            },
+            "description": "",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError",
+                },
+              },
+            },
+            "description": "Invalid input",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not authenticated",
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Permission denied",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not found",
+          },
+        },
+        "security": [
+          {
+            "tokenAuth": [],
+          },
+        ],
+        "summary": "Publish a post",
+        "tags": [
+          "publishing",
+        ],
+      },
+    },
+    "/api/tags/": {
+      "get": {
+        "operationId": "listLabel",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Tag",
+                  },
+                  "type": "array",
+                },
+              },
+            },
+            "description": "",
+          },
+        },
+        "tags": [
+          "labels",
+        ],
+      },
+    },
+    "/api/tags/{id}/": {
+      "get": {
+        "operationId": "retrieveLabel",
+        "parameters": [
+          {
+            "description": "A unique integer value identifying this tag.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag2",
+                },
+              },
+            },
+            "description": "",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail",
+                },
+              },
+            },
+            "description": "Not found",
+          },
+        },
+        "tags": [
+          "labels",
+        ],
+      },
+    },
+  },
+}
+`;

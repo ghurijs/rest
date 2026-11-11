@@ -1,3 +1,4 @@
+import { ValidationError as CoreValidationError } from '@ghuri/core'
 import {
   BooleanField,
   CASCADE,
@@ -84,4 +85,17 @@ export class Comment extends Model({
   static Meta = { appLabel: 'blog', ordering: ['id'], uniqueTogether: [['post', 'rank']] }
 }
 
-export const allModels = [Member, Tag, Post, Comment]
+/** A model with model-level validation (`clean()`), for `Meta.fullClean`. */
+export class Event extends Model({
+  name: new CharField({ maxLength: 50 }),
+  capacity: new IntegerField({ default: 10 }),
+}) {
+  declare static objects: Manager<Event>
+  static Meta = { appLabel: 'blog' }
+  override clean(): void {
+    if (this.capacity > 100) throw new CoreValidationError({ capacity: ['Too many seats.'] })
+    if (this.name === 'nope') throw new CoreValidationError('Event name not allowed.')
+  }
+}
+
+export const allModels = [Member, Tag, Post, Comment, Event]

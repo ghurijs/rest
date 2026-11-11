@@ -16,7 +16,7 @@ export type SerializerClass = new (opts?: any) => BaseSerializer
  * DRF's `GenericAPIView`: `queryset` + `serializerClass` + lookup, filtering and pagination helpers used by
  * the mixins and concrete generic views.
  */
-export class GenericAPIView<M = any> extends APIView {
+export class GenericAPIView extends APIView {
   /** Base queryset (`Post.objects.all()`); re-evaluated per request via `getQueryset()`. */
   declare queryset?: any
   declare serializerClass?: SerializerClass
@@ -52,7 +52,7 @@ export class GenericAPIView<M = any> extends APIView {
   }
 
   /** Lookup the object for detail routes, check object permissions; 404 when missing. */
-  async getObject(): Promise<M> {
+  async getObject(): Promise<any> {
     const queryset = this.filterQueryset(this.getQueryset())
     const lookupUrlKwarg = this.lookupUrlKwarg ?? this.lookupField
     if (!(lookupUrlKwarg in this.kwargs)) {
@@ -73,7 +73,7 @@ export class GenericAPIView<M = any> extends APIView {
         throw notFound()
       }
     }
-    let obj: M
+    let obj: any
     try {
       obj = await queryset.get({ [this.lookupField]: value })
     } catch (err) {
