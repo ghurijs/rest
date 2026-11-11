@@ -1,4 +1,4 @@
-import { include, path, setUser } from '@ghuri/core'
+import { CsrfMiddleware, include, path, setUser } from '@ghuri/core'
 import type { Context } from 'hono'
 import { describe, expect, it } from 'vitest'
 import {
@@ -20,7 +20,7 @@ import {
   ObjectPermissions,
   SAFE_METHODS,
 } from '../src/index'
-import { backends, fakeUser, useApi } from './helpers'
+import { backends, fakeUser, makeApi, useApi } from './helpers'
 import { Member, Post, Tag } from './models'
 
 const ADMIN = fakeUser({ pk: 1, username: 'admin', isStaff: true })
@@ -262,5 +262,26 @@ describe.each(backends)('authentication & permissions (%s)', (backend) => {
     const noCsrf = await api.client.post('/session/', { a: 1 }, { headers, csrf: false })
     expect(noCsrf.status).toBe(403)
     expect(noCsrf.data.detail).toMatch(/^CSRF Failed: /)
+  })
+})
+
+describe('CSRF', () => {
+  it('API views are CSRF-exempt under CsrfMiddleware; plain views are not', async () => {
+    const { client, db } = await makeApi({
+      urls: [...urls, path('plain-post/', (c) => c.json({ ok: true }))],
+      settings: { MIDDLEWARE: [CsrfMiddleware] },
+    })
+    try {
+      const api = await client.post(
+        '/composed/',
+        {},
+        { headers: { Authorization: 'Token admin' }, csrf: false },
+      )
+      expect(api.status).toBe(200)
+      const plain = await client.post('/plain-post/', {}, { csrf: false })
+      expect(plain.status).toBe(403)
+    } finally {
+      await db.teardown()
+    }
   })
 })

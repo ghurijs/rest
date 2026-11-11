@@ -1,3 +1,4 @@
+import type { RequestUser } from '@ghuri/core'
 import {
   converters,
   ImproperlyConfigured,
@@ -10,6 +11,8 @@ import {
   type UrlEntry,
   type UrlPatterns,
 } from '@ghuri/core'
+import { Hono } from 'hono'
+import { ForcedAuthentication } from './authentication'
 import { type ActionInfo, getExtraActions } from './decorators'
 import type { JSONSchema, JSONSchemaOptions } from './fields'
 import type { APIRequest } from './request'
@@ -193,6 +196,62 @@ export class RouterRegistration {
     return serializer.jsonSchema(opts)
   }
 
+  /**
+   * Run an action without HTTP routing (for agents, queues, scripts): the full view pipeline runs —
+   * permissions, throttles, validation, serialization — with `user` as the authenticated user.
+   *
+   * ```ts
+   * const { status, data } = await router.registry[0].invoke('create', { user, data: { title: 'Hi' } })
+   * const { data: post } = await entry.invoke('retrieve', { user, kwargs: { pk: 1 } })
+   * ```
+   */
+  async invoke(action: string, opts: InvokeOptions = {}): Promise<InvokeResult> {
+    const endpoint = this.endpoints.find(
+      (e) => e.action === action && (!opts.method || e.method === opts.method.toUpperCase()),
+    )
+    if (!endpoint)
+      throw new ImproperlyConfigured(`${this.viewset.name} has no action '${action}' routed by the router.`)
+    const method = endpoint.method
+    const route = this.routes.find((r) => r.name === endpoint.name)
+    const user = opts.user ?? null
+    const Forced = class InvokeAuthentication extends ForcedAuthentication {
+      constructor() {
+        super(user, opts.auth ?? null)
+      }
+    }
+    const initkwargs: Record<string, unknown> = {
+      ...(route?.action?.kwargs ?? {}),
+      ...(endpoint.detail ? { suffix: 'Instance' } : { suffix: 'List' }),
+      basename: this.basename,
+      detail: endpoint.detail,
+      kwargs: { ...(opts.kwargs ?? {}) },
+      authenticationClasses: [Forced],
+    }
+    if (route?.action) delete initkwargs.suffix
+    const view = this.viewset.asView({ [method.toLowerCase()]: action }, initkwargs)
+    const url = new URL(
+      `http://localhost/${endpoint.pattern.replace(/<[^>]+>/g, (m) => String(opts.kwargs?.[m.slice(1, -1).split(':').pop()!] ?? '_'))}`,
+    )
+    for (const [k, v] of Object.entries(opts.query ?? {})) {
+      for (const x of Array.isArray(v) ? v : [v])
+        if (x !== undefined && x !== null) url.searchParams.append(k, String(x))
+    }
+    const headers = new Headers({ accept: 'application/json', ...(opts.headers ?? {}) })
+    let body: string | undefined
+    if (opts.data !== undefined && !['GET', 'HEAD'].includes(method)) {
+      body = JSON.stringify(opts.data)
+      headers.set('content-type', 'application/json')
+    }
+    const hono = new Hono()
+    hono.all('*', (c) => view(c))
+    const res = await hono.fetch(new Request(url, { method, headers, body }))
+    const text = await res.text()
+    let data: unknown = text
+    if ((res.headers.get('content-type') ?? '').includes('json')) data = text ? JSON.parse(text) : null
+    else if (!text) data = null
+    return { status: res.status, data, headers: res.headers }
+  }
+
   toJSON(): Record<string, unknown> {
     return {
       prefix: this.prefix,
@@ -203,6 +262,29 @@ export class RouterRegistration {
       routes: this.routes.map(({ action: _a, ...r }) => r),
     }
   }
+}
+
+export interface InvokeOptions {
+  /** The acting user (authentication classes are bypassed); anonymous when omitted. */
+  user?: RequestUser | null
+  /** `request.auth` value. */
+  auth?: unknown
+  /** Request body (sent as JSON). */
+  data?: unknown
+  /** Query parameters (filters, pagination). */
+  query?: Record<string, unknown>
+  /** URL kwargs, e.g. `{ pk: 1 }` for detail actions. */
+  kwargs?: Record<string, unknown>
+  /** HTTP method when an action accepts several. */
+  method?: string
+  headers?: Record<string, string>
+}
+
+export interface InvokeResult {
+  status: number
+  /** Parsed JSON body (null for empty bodies). */
+  data: unknown
+  headers: Headers
 }
 
 export interface SimpleRouterOptions {

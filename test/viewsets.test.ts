@@ -272,6 +272,37 @@ describe.each(backends)('ModelViewSet end-to-end (%s)', (backend) => {
     expect(post.status).toBe(405)
   })
 
+  it('invokes actions programmatically through the registry (agents)', async () => {
+    const { p1 } = await seed()
+    const entry = router.registry.find((r) => r.basename === 'post')!
+    const list = await entry.invoke('list')
+    expect(list.status).toBe(200)
+    expect((list.data as any[]).map((p) => p.title)).toEqual(['Hello', 'Second'])
+    const created = await entry.invoke('create', {
+      user: fakeUser({ username: 'bob' }),
+      data: { title: 'Agent', slug: 'agent' },
+    })
+    expect(created.status).toBe(201)
+    expect(created.data).toMatchObject({ title: 'Agent', authorName: 'bob' })
+    const invalid = await entry.invoke('create', {
+      user: fakeUser({ username: 'bob' }),
+      data: { slug: 'agent' },
+    })
+    expect(invalid).toMatchObject({
+      status: 400,
+      data: { title: ['This field is required.'], slug: ['Post with this Slug already exists.'] },
+    })
+    expect((await entry.invoke('draftPosts', { user: fakeUser() })).status).toBe(403)
+    expect((await entry.invoke('draftPosts', { user: fakeUser({ isStaff: true }) })).status).toBe(200)
+    const pub = await entry.invoke('publish', { kwargs: { pk: p1.id } })
+    expect(pub.data).toEqual({ status: 'published', id: p1.id })
+    const archived = await entry.invoke('archive', { kwargs: { pk: p1.id }, method: 'DELETE' })
+    expect(archived.data).toEqual({ action: 'archive', detail: true })
+    const missing = await entry.invoke('retrieve', { kwargs: { pk: 999 } })
+    expect(missing).toMatchObject({ status: 404, data: { detail: 'No Post matches the given query.' } })
+    await expect(entry.invoke('nope')).rejects.toThrow(/no action 'nope'/)
+  })
+
   it('serves the API root, format suffixes, OPTIONS and namespaced routers', async () => {
     const root = await api.client.get('/api/')
     expect(root.data).toEqual({

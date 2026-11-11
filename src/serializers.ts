@@ -381,7 +381,7 @@ export class Serializer<I = any> extends BaseSerializer<I> {
     if (isHtmlInput(dictionary)) {
       // Nested HTML input (`author.name`) is not supported; a JSON string is accepted.
       const v = dictionary[this.fieldName]
-      if (v === undefined) return this.root.partial ? empty : empty
+      if (v === undefined) return empty
       if (typeof v === 'string') {
         try {
           return JSON.parse(v)

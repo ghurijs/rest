@@ -197,6 +197,8 @@ export {
   type DefaultRouterOptions,
   type DynamicRoute,
   type EndpointInfo,
+  type InvokeOptions,
+  type InvokeResult,
   type Route,
   type RouteInfo,
   RouterRegistration,
