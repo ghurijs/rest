@@ -444,6 +444,8 @@ new PostSerializer().jsonSchema({ mode: 'input', partial: true })
 - `FieldFilter` replaces django-filter's `DjangoFilterBackend` (also exported under that name) for simple lookups.
 - `CursorPagination.ordering` defaults to `'-createdAt'`.
 - `DurationField` values are milliseconds (the ORM's representation); output uses DRF's `[DD ]HH:MM:SS[.uuuuuu]`.
+- Overriding a policy list in a subclass of a class that set it may need a wider type:
+  `authenticationClasses: AuthenticationClass[] = [TokenAuthentication]` (TypeScript infers the narrowest array type).
 - No API versioning classes or `TemplateHTMLRenderer` yet.
 
 ## License

@@ -125,13 +125,11 @@ export class ViewSet extends ViewSetMixin(APIView) {}
 export class GenericViewSet extends ViewSetMixin(GenericAPIView) {}
 
 /** `list` + `retrieve`. */
-export class ReadOnlyModelViewSet<M = any> extends RetrieveModelMixin(ListModelMixin(GenericViewSet)) {
-  declare __model?: M
-}
+// biome-ignore lint/correctness/noUnusedVariables: `M` documents the model (`ReadOnlyModelViewSet<Post>`)
+export class ReadOnlyModelViewSet<M = any> extends RetrieveModelMixin(ListModelMixin(GenericViewSet)) {}
 
 /** `list`, `create`, `retrieve`, `update`, `partialUpdate`, `destroy`. */
+// biome-ignore lint/correctness/noUnusedVariables: `M` documents the model (`ModelViewSet<Post>`)
 export class ModelViewSet<M = any> extends CreateModelMixin(
   RetrieveModelMixin(UpdateModelMixin(DestroyModelMixin(ListModelMixin(GenericViewSet)))),
-) {
-  declare __model?: M
-}
+) {}
