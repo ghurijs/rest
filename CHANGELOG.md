@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.1
 
 - `generateschema` command (DRF's): writes the OpenAPI 3.1 schema as YAML (default) or JSON (`--format openapi-json`, or a `--file` ending in `.json`), with `--title`, `--description`, `--api-version` and `--url`. It uses the `SchemaView` routed in `ROOT_URLCONF`, so the file matches what `/api/schema/` serves. Add the new `RestFrameworkConfig` to `INSTALLED_APPS` to get it.
 
