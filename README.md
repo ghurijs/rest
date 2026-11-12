@@ -341,7 +341,8 @@ REST_FRAMEWORK: {
   Values are converted by the model field; invalid values give 400.
 - `AnonRateThrottle`, `UserRateThrottle`, `ScopedRateThrottle` (`throttleScope = 'uploads'`) keep request history in
   the core cache (KV on Workers). Rates: `'100/hour'`, `'5/s'`, `'10/5m'`. Clients are identified by
-  `CF-Connecting-IP` / `X-Forwarded-For` (`NUM_PROXIES`).
+  `CF-Connecting-IP` on Cloudflare, the socket address on Node, and `X-Forwarded-For` only when `NUM_PROXIES` is
+  set (behind a reverse proxy).
 
 ## 7. OpenAPI
 

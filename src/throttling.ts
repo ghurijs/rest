@@ -1,4 +1,4 @@
-import { type Cache, caches, ImproperlyConfigured } from '@ghuri/core'
+import { type Cache, caches, getRemoteAddr, ImproperlyConfigured } from '@ghuri/core'
 import type { APIRequest } from './request'
 import { apiSettings } from './settings'
 import type { MaybePromise } from './utils'
@@ -8,23 +8,26 @@ export abstract class BaseThrottle {
   abstract allowRequest(request: APIRequest, view: any): MaybePromise<boolean>
 
   /**
-   * Client identity: `X-Forwarded-For` honoring `NUM_PROXIES`, else the client address (`CF-Connecting-IP` on
-   * Cloudflare, the socket address on Node).
+   * Client identity (DRF's `get_ident`). With `NUM_PROXIES` set, the address that many hops from the end of
+   * `X-Forwarded-For` (`0`: ignore the header); without it, `X-Forwarded-For` is never read, because clients
+   * can send any value. Falls back to `getRemoteAddr()`.
    */
   getIdent(request: APIRequest): string {
-    const xff = request.header('x-forwarded-for')
-    const remote =
-      request.header('cf-connecting-ip') ??
-      (request.c.env as any)?.incoming?.socket?.remoteAddress ??
-      request.header('x-real-ip') ??
-      ''
+    const remote = this.getRemoteAddr(request)
     const numProxies = apiSettings.NUM_PROXIES
-    if (numProxies !== null && numProxies !== undefined) {
-      if (numProxies === 0 || !xff) return remote
-      const addrs = xff.split(',')
-      return addrs[addrs.length - Math.min(numProxies, addrs.length)].trim()
-    }
-    return xff ? xff.replace(/\s+/g, '') : remote
+    if (numProxies === null || numProxies === undefined) return remote
+    const xff = request.header('x-forwarded-for')
+    if (numProxies === 0 || !xff) return remote
+    const addrs = xff.split(',')
+    return addrs[addrs.length - Math.min(numProxies, addrs.length)].trim()
+  }
+
+  /**
+   * The peer address (Django's `REMOTE_ADDR`): core's `getRemoteAddr(c)` — `CF-Connecting-IP` on Cloudflare,
+   * else the socket address on Node, else `''`. Override to read the address from somewhere else.
+   */
+  getRemoteAddr(request: APIRequest): string {
+    return getRemoteAddr(request.c)
   }
 
   /** Seconds to wait before the next request is allowed (or null). */

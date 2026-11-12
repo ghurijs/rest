@@ -1,4 +1,9 @@
-import { CSRF_EXEMPT_MARKER, ImproperlyConfigured, kwargs as urlKwargs } from '@ghuri/core'
+import {
+  CSRF_EXEMPT_MARKER,
+  ImproperlyConfigured,
+  kwargs as urlKwargs,
+  XFRAME_OPTIONS_EXEMPT_MARKER,
+} from '@ghuri/core'
 import type { Context } from 'hono'
 import type { AuthenticationClass, BaseAuthentication } from './authentication'
 import {
@@ -70,6 +75,8 @@ export class APIView {
   ]
   /** Static description (DRF uses the docstring): shown by the browsable API and OpenAPI. */
   static description?: string
+  /** Exempt every view produced by `asView()` from `XFrameOptionsMiddleware` (core's `xframeOptionsExempt`). */
+  static xframeOptionsExempt = false
 
   declare rendererClasses?: RendererClass[]
   declare parserClasses?: ParserClass[]
@@ -127,6 +134,7 @@ export class APIView {
     view.viewInitkwargs = initkwargs
     Object.defineProperty(view, 'name', { value: this.name })
     ;(view as any)[CSRF_EXEMPT_MARKER] = true
+    if (this.xframeOptionsExempt) (view as any)[XFRAME_OPTIONS_EXEMPT_MARKER] = true
     return view
   }
 

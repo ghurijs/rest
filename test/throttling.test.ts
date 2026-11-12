@@ -1,5 +1,5 @@
 import { path } from '@ghuri/core'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   AnonRateThrottle,
   type APIRequest,
@@ -66,7 +66,7 @@ describe('throttling', () => {
         path('unscoped/', Unscoped),
         path('burst/', Bursty),
       ],
-      rest: { DEFAULT_THROTTLE_RATES: { anon: '2/min', user: '5/hour', uploads: '1/day' } },
+      rest: { DEFAULT_THROTTLE_RATES: { anon: '2/min', user: '5/hour', uploads: '1/day' }, NUM_PROXIES: 1 },
     })
     try {
       Clock.set(1_000_000)
@@ -98,7 +98,7 @@ describe('throttling', () => {
       for (let i = 0; i < 5; i++) expect((await client.get('/unscoped/')).status).toBe(200)
 
       client.forceAuthenticate(null)
-      const ip = { 'cf-connecting-ip': '1.2.3.4' }
+      const ip = { 'x-forwarded-for': '1.2.3.4' }
       expect((await client.get('/burst/', undefined, { headers: ip })).status).toBe(200)
       expect((await client.get('/burst/', undefined, { headers: ip })).status).toBe(200)
       expect((await client.get('/burst/', undefined, { headers: ip })).status).toBe(429)
@@ -116,5 +116,63 @@ describe('throttling', () => {
     expect(t.parseRate('10/5m')).toEqual([10, 300])
     expect(t.parseRate('1/day')).toEqual([1, 86400])
     expect(t.parseRate(null)).toEqual([null, null])
+  })
+
+  describe('client IP (getIdent)', () => {
+    class Ident extends APIView {
+      async get(request: APIRequest) {
+        return { ident: new AnonRateThrottle().getIdent(request) }
+      }
+    }
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    async function identOf(
+      rest: Record<string, unknown>,
+      headers: Record<string, string>,
+      env: Record<string, unknown> = {},
+    ): Promise<string> {
+      const h = await makeApi({ urls: [path('ident/', Ident)], rest: rest as any })
+      try {
+        Object.assign(h.env, env)
+        const res = await h.client.get('/ident/', undefined, { headers })
+        expect(res.status).toBe(200)
+        return res.data.ident
+      } finally {
+        await h.db.teardown()
+      }
+    }
+
+    it('ignores client-sent X-Forwarded-For, X-Real-IP and CF-Connecting-IP by default', async () => {
+      const spoofed = { 'x-forwarded-for': '6.6.6.6', 'x-real-ip': '7.7.7.7', 'cf-connecting-ip': '8.8.8.8' }
+      expect(await identOf({}, spoofed)).toBe('')
+      // two requests with different spoofed values share one identity
+      expect(await identOf({}, { 'x-forwarded-for': '6.6.6.7' })).toBe('')
+    })
+
+    it('uses the socket address on Node', async () => {
+      const env = { incoming: { socket: { remoteAddress: '203.0.113.9' } } }
+      expect(await identOf({}, { 'x-forwarded-for': '6.6.6.6', 'cf-connecting-ip': '8.8.8.8' }, env)).toBe(
+        '203.0.113.9',
+      )
+    })
+
+    it('uses CF-Connecting-IP on Cloudflare Workers, not X-Forwarded-For', async () => {
+      vi.stubGlobal('navigator', { userAgent: 'Cloudflare-Workers' })
+      expect(await identOf({}, { 'cf-connecting-ip': '198.51.100.7', 'x-forwarded-for': '6.6.6.6' })).toBe(
+        '198.51.100.7',
+      )
+    })
+
+    it('reads X-Forwarded-For only when NUM_PROXIES is set (DRF semantics)', async () => {
+      const env = { incoming: { socket: { remoteAddress: '10.0.0.5' } } }
+      const xff = { 'x-forwarded-for': '6.6.6.6, 198.51.100.1, 10.0.0.2' }
+      expect(await identOf({ NUM_PROXIES: 1 }, xff, env)).toBe('10.0.0.2')
+      expect(await identOf({ NUM_PROXIES: 2 }, xff, env)).toBe('198.51.100.1')
+      expect(await identOf({ NUM_PROXIES: 10 }, xff, env)).toBe('6.6.6.6')
+      expect(await identOf({ NUM_PROXIES: 0 }, xff, env)).toBe('10.0.0.5')
+      expect(await identOf({ NUM_PROXIES: 1 }, {}, env)).toBe('10.0.0.5')
+    })
   })
 })

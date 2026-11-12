@@ -1,4 +1,10 @@
-import { CSRF_EXEMPT_MARKER, ImproperlyConfigured, resolverMatch, reverse } from '@ghuri/core'
+import {
+  CSRF_EXEMPT_MARKER,
+  ImproperlyConfigured,
+  resolverMatch,
+  reverse,
+  XFRAME_OPTIONS_EXEMPT_MARKER,
+} from '@ghuri/core'
 import type { Context } from 'hono'
 import { type ActionInfo, getExtraActions } from './decorators'
 import {
@@ -68,6 +74,7 @@ export function ViewSetMixin<TBase extends APIViewConstructor>(Base: TBase) {
       view.actions = actions
       Object.defineProperty(view, 'name', { value: this.name })
       ;(view as any)[CSRF_EXEMPT_MARKER] = true
+      if (this.xframeOptionsExempt) (view as any)[XFRAME_OPTIONS_EXEMPT_MARKER] = true
       return view
     }
 
