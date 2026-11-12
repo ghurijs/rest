@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.2
 
 - **Behaviour change — throttle client IPs are safe by default.** `BaseThrottle.getIdent()` no longer reads
   `X-Forwarded-For` (or `X-Real-IP`) unless `REST_FRAMEWORK.NUM_PROXIES` is set. Before, with `NUM_PROXIES`
@@ -17,8 +17,7 @@
   override it to read the address from somewhere else.
 - `static xframeOptionsExempt = true` on an `APIView` or `ViewSet` exempts its views from core's
   `XFrameOptionsMiddleware`, like core class views.
-- Requires the `@ghuri/core` release that adds `getRemoteAddr` and `XFRAME_OPTIONS_EXEMPT_MARKER`; raise the
-  `@ghuri/core` peer range to it when releasing.
+- Requires `@ghuri/core` 0.1.0-alpha.3 (`getRemoteAddr`, `XFRAME_OPTIONS_EXEMPT_MARKER`).
 
 ## 0.1.0-alpha.1
 
