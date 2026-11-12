@@ -269,8 +269,9 @@ Options: `detail` (required), `methods` (default `['get']`), `urlPath` / `urlNam
 kebab-case, `setPassword` → `set-password/`, `post-set-password`), plus any view attribute to override for the
 route (`permissionClasses`, `serializerClass`, `throttleScope`, `name`, …).
 
-> Vitest note: Vite 8 transforms TypeScript with oxc, which does not lower TC39 decorators yet. Either pre-transform
-> with esbuild in `vitest.config.ts` (see this package's config) or use `static actions`.
+> Vitest note: Vite 8 transforms TypeScript with oxc, which does not lower TC39 decorators yet. Projects made by
+> `ghuri startproject` set `oxc: { decorator: { legacy: true } }` in `vitest.config.ts` (`@action` supports both
+> flavors); alternatively pre-transform with esbuild (see this package's config) or use `static actions`.
 
 Other viewsets: `ViewSet` (write `list`, `retrieve`… yourself), `GenericViewSet`, `ReadOnlyModelViewSet`.
 Lookups: `lookupField`, `lookupUrlKwarg`, `lookupValueRegex` (default `[^/.]+`) or `lookupValueConverter`
@@ -306,6 +307,9 @@ class IsOwner extends BasePermission {
   }
 }
 ```
+
+Composed classes compose further — `IsAuthenticated.and(IsOwner).or(IsAdminUser)`, `IsStaff.or(IsOwner).not()` —
+and are typed `ComposedPermission`.
 
 Built-ins: `AllowAny`, `IsAuthenticated`, `IsAdminUser` (`user.isStaff`), `IsAuthenticatedOrReadOnly`,
 `ModelPermissions` (`user.hasPerm('blog.add_post')` for POST, `change_` for PUT/PATCH, `delete_` for DELETE),

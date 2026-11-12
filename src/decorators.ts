@@ -61,6 +61,23 @@ export interface ActionDecorator {
   readonly [ACTION_OPTIONS]: ActionOptions
 }
 
+/**
+ * Legacy (`experimentalDecorators`) method decorators compiled by Babel with decorator metadata — e.g. jiti, the
+ * TypeScript loader of the `ghuri` CLI — may receive the class prototype instead of the property descriptor
+ * (the no-op metadata decorators return their target). Recover the real descriptor in that case.
+ */
+function legacyMethodDescriptor(
+  target: unknown,
+  key: unknown,
+  descriptor: unknown,
+): PropertyDescriptor | undefined {
+  if (typeof key !== 'string' && typeof key !== 'symbol') return undefined
+  if (!target || (typeof target !== 'object' && typeof target !== 'function')) return undefined
+  if (descriptor !== undefined && descriptor !== target) return undefined
+  const real = Object.getOwnPropertyDescriptor(target, key)
+  return real && typeof real.value === 'function' ? real : undefined
+}
+
 function mark(fn: any, name: string, opts: ActionOptions): void {
   if (typeof fn !== 'function') throw new TypeError('@action() can only decorate methods.')
   fn[ACTION] = actionInfo(name, opts)
@@ -93,6 +110,11 @@ export function action(opts: ActionOptions): ActionDecorator {
         context && typeof context === 'object' && 'name' in context ? String(context.name) : value.name
       mark(value, name, opts)
       return value
+    }
+    const legacy = legacyMethodDescriptor(value, context, descriptor)
+    if (legacy) {
+      mark(legacy.value, String(context), opts)
+      return legacy
     }
     throw new TypeError('@action() can only decorate methods.')
   }) as ActionDecorator
@@ -160,7 +182,9 @@ export interface SchemaExtension {
 export function extendSchema(
   ext: SchemaExtension,
 ): (value: any, context?: any, descriptor?: PropertyDescriptor) => any {
-  return (value: any, _context?: any, descriptor?: PropertyDescriptor) => {
+  return (value: any, context?: any, descriptor?: PropertyDescriptor) => {
+    const legacy = legacyMethodDescriptor(value, context, descriptor)
+    if (legacy) descriptor = legacy
     const target = descriptor && typeof descriptor.value === 'function' ? descriptor.value : value
     if (typeof target !== 'function')
       throw new TypeError('extendSchema() can only decorate methods or classes.')

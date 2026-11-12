@@ -150,6 +150,7 @@ export {
 export {
   AllowAny,
   BasePermission,
+  type ComposedPermission,
   IsAdminUser,
   IsAuthenticated,
   IsAuthenticatedOrReadOnly,

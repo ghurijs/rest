@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- `@action` / `extendSchema` also work as legacy decorators compiled by Babel with decorator metadata (jiti — the `ghuri` CLI's loader).
+- Composed permissions (`A.and(B)`, `.or()`, `.not()`) are typed `ComposedPermission` and chain further: `IsAuthenticated.and(IsStaff).or(IsAdminUser)`.
+
 ## 0.1.0-alpha.0
 
 First alpha: a Django REST Framework clone for Ghuri.

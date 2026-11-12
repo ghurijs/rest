@@ -26,22 +26,28 @@ export class BasePermission {
   }
 
   /** `A.or(B)`: allowed when either allows (object level: `(A.has && A.hasObj) || (B.has && B.hasObj)`). */
-  static or(this: PermissionClass, ...others: PermissionClass[]): PermissionClass {
+  static or(this: PermissionClass, ...others: PermissionClass[]): ComposedPermission {
     return composeOr([this, ...others])
   }
 
   /** `A.and(B)`: allowed when both allow. */
-  static and(this: PermissionClass, ...others: PermissionClass[]): PermissionClass {
+  static and(this: PermissionClass, ...others: PermissionClass[]): ComposedPermission {
     return composeAnd([this, ...others])
   }
 
   /** `A.not()`: allowed when A denies. */
-  static not(this: PermissionClass): PermissionClass {
+  static not(this: PermissionClass): ComposedPermission {
     return composeNot(this)
   }
 }
 
 export type PermissionClass = new () => BasePermission
+
+/**
+ * A class returned by `.and()` / `.or()` / `.not()`: a permission class that composes further
+ * (`IsAuthenticated.and(IsOwner).or(IsAdminUser)`).
+ */
+export type ComposedPermission = typeof BasePermission
 
 /** Something with `hasPermission` / `hasObjectPermission` (structural, for permissions not extending BasePermission). */
 export interface PermissionLike {
@@ -56,7 +62,7 @@ function named<T extends PermissionClass>(cls: T, name: string): T {
   return cls
 }
 
-function composeOr(classes: PermissionClass[]): PermissionClass {
+function composeOr(classes: PermissionClass[]): ComposedPermission {
   return named(
     class OR extends BasePermission {
       readonly ops = classes.map((C) => new C())
@@ -76,7 +82,7 @@ function composeOr(classes: PermissionClass[]): PermissionClass {
   )
 }
 
-function composeAnd(classes: PermissionClass[]): PermissionClass {
+function composeAnd(classes: PermissionClass[]): ComposedPermission {
   return named(
     class AND extends BasePermission {
       readonly ops = classes.map((C) => new C())
@@ -105,7 +111,7 @@ function composeAnd(classes: PermissionClass[]): PermissionClass {
   )
 }
 
-function composeNot(cls: PermissionClass): PermissionClass {
+function composeNot(cls: PermissionClass): ComposedPermission {
   return named(
     class NOT extends BasePermission {
       readonly op = new cls()
