@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `generateschema` command (DRF's): writes the OpenAPI 3.1 schema as YAML (default) or JSON (`--format openapi-json`, or a `--file` ending in `.json`), with `--title`, `--description`, `--api-version` and `--url`. It uses the `SchemaView` routed in `ROOT_URLCONF`, so the file matches what `/api/schema/` serves. Add the new `RestFrameworkConfig` to `INSTALLED_APPS` to get it.
+
 - `@action` / `extendSchema` also work as legacy decorators compiled by Babel with decorator metadata (jiti — the `ghuri` CLI's loader).
 - Composed permissions (`A.and(B)`, `.or()`, `.not()`) are typed `ComposedPermission` and chain further: `IsAuthenticated.and(IsStaff).or(IsAdminUser)`.
 

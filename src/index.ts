@@ -1,12 +1,14 @@
 // @ghuri/rest — a Django REST Framework clone for Ghuri. See ARCHITECTURE.md §7 (github.com/ghurijs/ghuri).
 // Workers-safe: only @ghuri/core, @ghuri/orm and hono are imported.
 
+export { RestFrameworkConfig } from './apps'
 export {
   type AuthenticationClass,
   type BaseAuthentication,
   ForcedAuthentication,
   MiddlewareAuthentication,
 } from './authentication'
+export { GenerateSchemaCommand } from './commands'
 export {
   ACTION,
   type ActionDecorator,

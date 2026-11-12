@@ -349,13 +349,20 @@ REST_FRAMEWORK: {
 import { generateSchema, ScalarView, SchemaView, SwaggerUIView } from '@ghuri/rest'
 
 export const urlpatterns = [
-  path('api/', include(router.urls)),
   path('api/schema/', SchemaView.asView({ title: 'Blog API', version: '1.0.0' }), { name: 'schema' }),
   path('api/docs/', SwaggerUIView.asView({ urlName: 'schema' })),
   path('api/reference/', ScalarView.asView({ urlName: 'schema' })),
+  path('api/', include(router.urls)),
 ]
 
 const doc = generateSchema(router, { title: 'Blog API', prefix: 'api/' })   // or generateSchema(urlpatterns, {...})
+```
+
+Write it to a file with DRF's `generateschema` command (add `RestFrameworkConfig` to `INSTALLED_APPS`):
+
+```bash
+ghuri generateschema --file openapi.yaml          # YAML; --file openapi.json or --format openapi-json for JSON
+ghuri generateschema --api-version 2.0.0 --url https://api.example.com
 ```
 
 The OpenAPI 3.1 document has an operation per route and method (`listPosts`, `createPost`, `retrievePost`,
