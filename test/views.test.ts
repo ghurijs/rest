@@ -3,6 +3,8 @@ import {
   ValidationError as CoreValidationError,
   Http404,
   path,
+  XFrameOptionsMiddleware,
+  xframeOptionsExempt,
 } from '@ghuri/core'
 import { describe, expect, it } from 'vitest'
 import {
@@ -26,6 +28,7 @@ import {
   RetrieveUpdateDestroyAPIView,
   Serializer,
   status,
+  ViewSet,
 } from '../src/index'
 import { backends, fakeUser, makeApi, useApi } from './helpers'
 import { Member, Post } from './models'
@@ -316,6 +319,48 @@ describe('EXCEPTION_HANDLER setting', () => {
     try {
       const res = await client.get('/raise/', { kind: 'notfound' })
       expect(res.data).toEqual({ detail: 'Not found.', statusCode: 404 })
+    } finally {
+      await db.teardown()
+    }
+  })
+})
+
+describe('xframeOptionsExempt', () => {
+  class Framed extends APIView {
+    static override xframeOptionsExempt = true
+    async get() {
+      return { ok: true }
+    }
+  }
+  class Unframed extends APIView {
+    async get() {
+      return { ok: true }
+    }
+  }
+  class FramedSet extends ViewSet {
+    static override xframeOptionsExempt = true
+    async list() {
+      return new APIResponse([])
+    }
+  }
+
+  it('honours static xframeOptionsExempt on APIView and ViewSet, and the wrapper', async () => {
+    const { client, db } = await makeApi({
+      urls: [
+        path('framed/', Framed.asView()),
+        path('unframed/', Unframed.asView()),
+        path('framed-set/', FramedSet.asView({ get: 'list' })),
+        path('wrapped/', xframeOptionsExempt(Unframed.asView())),
+      ],
+      settings: { MIDDLEWARE: [XFrameOptionsMiddleware] },
+    })
+    try {
+      for (const url of ['/framed/', '/framed-set/', '/wrapped/']) {
+        const res = await client.get(url)
+        expect(res.status).toBe(200)
+        expect(res.headers.get('x-frame-options')).toBeNull()
+      }
+      expect((await client.get('/unframed/')).headers.get('x-frame-options')).toBe('DENY')
     } finally {
       await db.teardown()
     }
